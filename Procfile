@@ -1,1 +1,1 @@
-web: daphne django_chat_room.asgi:application
+web: daphne random_chat.asgi:application
