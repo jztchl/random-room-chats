@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,11 +29,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-j7c6z$)qng+1bpd(dlw#6_q!haq83)bl!du9gu1*&ih_1=hg!4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", True)
-
-ALLOWED_HOSTS = ["*"]
-
-
+DEBUG = os.getenv("DEBUG", False)
+ALLOWED_HOSTS = [os.getenv("ALLOWED_HOSTS", "*")]
 # Application definition
 
 INSTALLED_APPS = [
@@ -81,10 +79,20 @@ WSGI_APPLICATION = 'random_chat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+    "default": {
+        **dj_database_url.config(
+            default=os.getenv("DATABASE_URL"), conn_max_age=600, conn_health_checks=True
+        )
     }
 }
 
