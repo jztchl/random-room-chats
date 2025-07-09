@@ -2,8 +2,8 @@
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-
-
+from django.db import transaction
+from chat.models import Room    
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
@@ -11,14 +11,32 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
         )
-
+        with transaction.atomic():
+            room,created= Room.objects.get_or_create(name=self.room_group_name)
+            if created:
+                print("Room created")
+            room.members = room.members + 1
+            room.save()
+        
+            
         self.accept()
-
+        
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
-
+        with transaction.atomic():
+            try:
+                room = Room.objects.get(name=self.room_group_name)
+                room.members = room.members - 1
+                room.save(update_fields=['members'])
+                if room.members == 0:
+                    room.delete()
+                    print("Room deleted")
+            except Room.DoesNotExist:
+                print("Room does not exist")
+            
+        
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
@@ -27,12 +45,5 @@ class ChatConsumer(WebsocketConsumer):
         )
     def chat_message(self, event):
         message = event["message"]
-
-
         self.send(text_data=json.dumps({"message": message}))
-    
-    @classmethod
-    async def list_rooms(cls, channel_layer):
-        groups = await channel_layer.groups()
-        chat_rooms = [group for group in groups if group.startswith('chat_')]
-        return chat_rooms
+        
