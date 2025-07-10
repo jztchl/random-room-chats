@@ -230,6 +230,3 @@ randomchat/
 
 MIT — fork it, build on it, scale it.
 
----
-
-Need a Docker setup, Redis cluster configs, or Gunicorn+Daphne hybrid deployment for max load? Say the word, I’ll fire it up 🧠⚔️
