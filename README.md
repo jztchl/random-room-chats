@@ -111,7 +111,7 @@ Create a `.env` file:
 
 ```env
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1,random-room-chats.onrender.com
+ALLOWED_HOSTS=localhost,127.0.0.1
 REDIS_URL=redis://localhost:6379
 DATABASE_URLS=example.com
 
